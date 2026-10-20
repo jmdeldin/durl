@@ -86,6 +86,56 @@ describe('Durl', function() {
       expect(location.href).to.include('durl=new');
     });
   });
+
+  describe('implicit globals', function() {
+    it('does not leak variables from setDURL or getDeepPath', function() {
+      const leaked = ['pattern', 'hash', 'matches', 'whole', 'joiner'];
+      leaked.forEach((name) => delete global[name]);
+      location.href = 'https://localhost/#?durl=old';
+      const durl = makeDurl(pmb);
+      durl.setDURL('new');
+      durl.getDeepPath();
+      leaked.forEach((name) => expect(global).not.to.have.property(name));
+    });
+  });
+
+  describe('#log', function() {
+    let logged;
+    let originalLog;
+
+    beforeEach(function() {
+      logged = [];
+      originalLog = console.log;
+      console.log = (line) => logged.push(line);
+      window.console = console;
+      delete global.loggerId;
+    });
+
+    afterEach(function() {
+      console.log = originalLog;
+      delete window.console;
+    });
+
+    it('prefixes consumer messages', function() {
+      Durl.prototype.log.call({ options: { logging: true } }, 'hello');
+      expect(logged).to.deep.equal(['[consumer] hello']);
+    });
+
+    it('prefixes producer messages', function() {
+      Durl.prototype.log.call({ options: { logging: true, producer: true } }, 'hello');
+      expect(logged).to.deep.equal(['[producer] hello']);
+    });
+
+    it('does not log unless logging is enabled', function() {
+      Durl.prototype.log.call({ options: {} }, 'hello');
+      expect(logged).to.deep.equal([]);
+    });
+
+    it('does not leak a global loggerId variable', function() {
+      Durl.prototype.log.call({ options: { logging: true } }, 'hello');
+      expect(global).not.to.have.property('loggerId');
+    });
+  });
 });
 
 describe('Durl.stripDeepUrl', function() {

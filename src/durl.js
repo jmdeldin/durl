@@ -64,7 +64,7 @@ Durl.prototype.bootAsConsumer = function(){
 }
 
 Durl.prototype.matchDeepPath = function(path) {
-  pattern = new RegExp("(\\?|&)" + this.deep_url_var_name + "=([^&\n]*)")
+  var pattern = new RegExp("(\\?|&)" + this.deep_url_var_name + "=([^&\n]*)")
   return pattern.exec(this.vanillaHash()) || '' // [whole match, joiner, url]
 }
 
@@ -95,14 +95,15 @@ Durl.prototype.setDURL = function(new_url) {
   *
   */
   new_url = new_url || ''
-  hash = this.vanillaHash()
+  var hash = this.vanillaHash()
+  var matches = this.matchDeepPath()
 
-  if(matches = this.matchDeepPath()){
+  if(matches){
     if(matches[2] == new_url){
       return
     }else{
-      whole  = matches[0]
-      joiner = matches[1]
+      var whole  = matches[0]
+      var joiner = matches[1]
       hash   = hash.replace(whole, joiner + this.deep_url_var_name + "=" + new_url)
     }
   }else{
@@ -115,7 +116,8 @@ Durl.prototype.setDURL = function(new_url) {
 }
 
 Durl.prototype.getDeepPath = function() {
-  if(matches = this.matchDeepPath())
+  var matches = this.matchDeepPath()
+  if(matches)
     return decodeURIComponent(matches[2])
   else
     return ''
@@ -147,7 +149,7 @@ Durl.prototype.vanillaHash = function() {
 
 Durl.prototype.log = function(message){
   if(this.options.logging && window.console){
-    loggerId = this.options.producer ? 'producer' : 'consumer'
+    var loggerId = this.options.producer ? 'producer' : 'consumer'
     console.log('[' + loggerId + '] ' + message)
   }
 }
